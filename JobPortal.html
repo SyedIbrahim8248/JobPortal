@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Job Portal</title>
+<style>
+body{font-family:Arial;margin:0;background:#f2f2f2;color:#222}
+header{background:#1565c0;color:white;padding:20px;text-align:center}
+nav{background:#0d47a1;padding:10px;text-align:center}
+nav button,button{background:#1565c0;color:white;border:0;padding:10px 15px;margin:5px;border-radius:5px;cursor:pointer}
+.container{max-width:1000px;margin:auto;padding:20px}
+.box{background:white;padding:20px;margin:15px 0;border-radius:8px;box-shadow:0 2px 6px #aaa}
+input,select,textarea{width:100%;padding:10px;margin:7px 0;border:1px solid #ccc;border-radius:5px}
+.job{border:1px solid #ddd;padding:15px;margin:10px 0;border-radius:7px}
+.hide{display:none}
+.danger{background:#d32f2f}
+.green{background:#2e7d32}
+.login{max-width:400px;margin:80px auto}
+.dark{background:#222;color:white}
+.dark .box{background:#333}
+.dark input,.dark select,.dark textarea{background:#444;color:white}
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>💼 JOB PORTAL</h1>
+<p>Find Jobs and Apply Online</p>
+</header>
+
+<div id="login" class="box login">
+<h2>🔐 Login</h2>
+<input id="username" placeholder="Username">
+<input id="password" type="password" placeholder="Password">
+<button onclick="login()">Login</button>
+<p id="loginMsg"></p>
+<p>Username: admin | Password: 1234</p>
+</div>
+
+<div id="main" class="hide">
+
+<nav>
+<button onclick="page('home')">🏠 Home</button>
+<button onclick="page('jobs')">🔎 Jobs</button>
+<button onclick="page('add')">➕ Add Job</button>
+<button onclick="page('applications')">📋 Applications</button>
+<button onclick="page('profile')">👤 Profile</button>
+<button onclick="darkMode()">🌙</button>
+<button class="danger" onclick="logout()">Logout</button>
+</nav>
+
+<div class="container">
+
+<div id="home" class="page">
+<div class="box">
+<h2>📊 Dashboard</h2>
+<h3>Total Jobs: <span id="totalJobs">0</span></h3>
+<h3>Total Applications: <span id="totalApplications">0</span></h3>
+<h3>Saved Jobs: <span id="totalSaved">0</span></h3>
+</div>
+
+<div class="box">
+<h2>Welcome to Job Portal</h2>
+<p>Search jobs, apply for jobs and manage your applications.</p>
+</div>
+</div>
+
+<div id="jobs" class="page hide">
+<div class="box">
+<h2>🔎 Search Jobs</h2>
+
+<input id="search" placeholder="Search job or company"
+onkeyup="showJobs()">
+
+<select id="jobType" onchange="showJobs()">
+<option value="">All Jobs</option>
+<option>Full Time</option>
+<option>Part Time</option>
+<option>Internship</option>
+<option>Remote</option>
+</select>
+
+<div id="jobList"></div>
+</div>
+</div>
+
+<div id="add" class="page hide">
+<div class="box">
+<h2>➕ Add Job</h2>
+
+<input id="title" placeholder="Job Title">
+<input id="company" placeholder="Company Name">
+<input id="location" placeholder="Location">
+<input id="salary" placeholder="Salary">
+<input id="skills" placeholder="Required Skills">
+
+<select id="type">
+<option>Full Time</option>
+<option>Part Time</option>
+<option>Internship</option>
+<option>Remote</option>
+</select>
+
+<textarea id="description" placeholder="Job Description"></textarea>
+
+<button onclick="addJob()">Add Job</button>
+<p id="addMsg"></p>
+</div>
+</div>
+
+<div id="applications" class="page hide">
+<div class="box">
+<h2>📋 My Applications</h2>
+<div id="applicationList"></div>
+</div>
+</div>
+
+<div id="profile" class="page hide">
+<div class="box">
+<h2>👤 My Profile</h2>
+
+<input id="pname" placeholder="Full Name">
+<input id="email" placeholder="Email">
+<input id="phone" placeholder="Phone">
+<input id="education" placeholder="Education">
+<input id="pskills" placeholder="Skills">
+
+<textarea id="about" placeholder="About You"></textarea>
+
+<button onclick="saveProfile()">Save Profile</button>
+<p id="profileMsg"></p>
+</div>
+</div>
+
+</div>
+</div>
+
+<script>
+
+var jobs=JSON.parse(localStorage.getItem("jobs"))||[
+{
+id:1,
+title:"Java Developer",
+company:"TCS",
+location:"Delhi",
+salary:"₹5 LPA",
+skills:"Java SQL Spring",
+type:"Full Time",
+description:"Java development job"
+},
+{
+id:2,
+title:"Web Developer",
+company:"Infosys",
+location:"Bangalore",
+salary:"₹4 LPA",
+skills:"HTML CSS JavaScript",
+type:"Full Time",
+description:"Web development job"
+},
+{
+id:3,
+title:"Java Intern",
+company:"Wipro",
+location:"Noida",
+salary:"₹15000",
+skills:"Java SQL",
+type:"Internship",
+description:"Java internship"
+}
+];
+
+var applications=JSON.parse(localStorage.getItem("applications"))||[];
+var saved=JSON.parse(localStorage.getItem("saved"))||[];
+var profile=JSON.parse(localStorage.getItem("profile"))||{};
+
+function saveData(){
+
+localStorage.setItem("jobs",JSON.stringify(jobs));
+
+localStorage.setItem(
+"applications",
+JSON.stringify(applications)
+);
+
+localStorage.setItem(
+"saved",
+JSON.stringify(saved)
+);
+
+localStorage.setItem(
+"profile",
+JSON.stringify(profile)
+);
+
+}
+
+function login(){
+
+var u=document.getElementById("username").value;
+var p=document.getElementById("password").value;
+
+if(u=="admin" && p=="1234"){
+
+document.getElementById("login").classList.add("hide");
+
+document.getElementById("main").classList.remove("hide");
+
+page("home");
+
+}else{
+
+document.getElementById("loginMsg").innerHTML=
+"❌ Wrong username or password";
+
+}
+
+}
+
+function logout(){
+
+location.reload();
+
+}
+
+function page(id){
+
+var pages=document.getElementsByClassName("page");
+
+for(var i=0;i<pages.length;i++){
+
+pages[i].classList.add("hide");
+
+}
+
+document.getElementById(id).classList.remove("hide");
+
+updateDashboard();
+
+if(id=="jobs") showJobs();
+
+if(id=="applications") showApplications();
+
+if(id=="profile") loadProfile();
+
+}
+
+function addJob(){
+
+var title=document.getElementById("title").value;
+
+var company=document.getElementById("company").value;
+
+var location=document.getElementById("location").value;
+
+var salary=document.getElementById("salary").value;
+
+var skills=document.getElementById("skills").value;
+
+var type=document.getElementById("type").value;
+
+var description=document.getElementById("description").value;
+
+if(title==""||company==""){
+
+alert("Enter Job Title and Company");
+
+return;
+
+}
+
+jobs.push({
+
+id:Date.now(),
+
+title:title,
+
+company:company,
+
+location:location,
+
+salary:salary,
+
+skills:skills,
+
+type:type,
+
+description:description
+
+});
+
+saveData();
+
+document.getElementById("addMsg").innerHTML=
+"✅ Job added successfully";
+
+document.getElementById("title").value="";
+document.getElementById("company").value="";
+document.getElementById("location").value="";
+document.getElementById("salary").value="";
+document.getElementById("skills").value="";
+document.getElementById("description").value="";
+
+updateDashboard();
+
+}
+
+function showJobs(){
+
+var search=document.getElementById("search").value.toLowerCase();
+
+var type=document.getElementById("jobType").value;
+
+var html="";
+
+for(var i=0;i<jobs.length;i++){
+
+var j=jobs[i];
+
+if(
+(j.title.toLowerCase().includes(search)||
+j.company.toLowerCase().includes(search)||
+j.skills.toLowerCase().includes(search))
+&&
+(type==""||j.type==type)
+){
+
+html+=`
+
+<div class="job">
+
+<h2>${j.title}</h2>
+
+<p>🏢 <b>${j.company}</b></p>
+
+<p>📍 ${j.location}</p>
+
+<p>💰 ${j.salary}</p>
+
+<p>💻 ${j.skills}</p>
+
+<p>📌 ${j.type}</p>
+
+<p>${j.description}</p>
+
+<button class="green"
+onclick="applyJob(${j.id})">
+Apply
+</button>
+
+<button onclick="saveJob(${j.id})">
+❤️ Save
+</button>
+
+<button class="danger"
+onclick="deleteJob(${j.id})">
+Delete
+</button>
+
+</div>
+
+`;
+
+}
+
+}
+
+if(html==""){
+
+html="<p>❌ No jobs found</p>";
+
+}
+
+document.getElementById("jobList").innerHTML=html;
+
+}
+
+function applyJob(id){
+
+var j=jobs.find(function(x){
+
+return x.id==id;
+
+});
+
+var already=applications.find(function(x){
+
+return x.id==id;
+
+});
+
+if(already){
+
+alert("You already applied for this job");
+
+return;
+
+}
+
+applications.push({
+
+id:j.id,
+
+title:j.title,
+
+company:j.company,
+
+status:"Applied",
+
+date:new Date().toLocaleDateString()
+
+});
+
+saveData();
+
+alert("✅ Application submitted");
+
+updateDashboard();
+
+}
+
+function saveJob(id){
+
+if(saved.indexOf(id)==-1){
+
+saved.push(id);
+
+saveData();
+
+alert("❤️ Job saved");
+
+}else{
+
+alert("Job already saved");
+
+}
+
+updateDashboard();
+
+}
+
+function deleteJob(id){
+
+if(confirm("Delete this job?")){
+
+jobs=jobs.filter(function(x){
+
+return x.id!=id;
+
+});
+
+saveData();
+
+showJobs();
+
+updateDashboard();
+
+}
+
+}
+
+function showApplications(){
+
+var html="";
+
+for(var i=0;i<applications.length;i++){
+
+var a=applications[i];
+
+html+=`
+
+<div class="job">
+
+<h2>${a.title}</h2>
+
+<p>🏢 ${a.company}</p>
+
+<p>📅 ${a.date}</p>
+
+<p>📌 Status: <b>${a.status}</b></p>
+
+<button class="danger"
+onclick="cancelApplication(${i})">
+Cancel Application
+</button>
+
+</div>
+
+`;
+
+}
+
+if(html==""){
+
+html="<p>No applications yet.</p>";
+
+}
+
+document.getElementById("applicationList").innerHTML=html;
+
+}
+
+function cancelApplication(i){
+
+applications.splice(i,1);
+
+saveData();
+
+showApplications();
+
+updateDashboard();
+
+}
+
+function saveProfile(){
+
+profile={
+
+name:document.getElementById("pname").value,
+
+email:document.getElementById("email").value,
+
+phone:document.getElementById("phone").value,
+
+education:document.getElementById("education").value,
+
+skills:document.getElementById("pskills").value,
+
+about:document.getElementById("about").value
+
+};
+
+saveData();
+
+document.getElementById("profileMsg").innerHTML=
+"✅ Profile saved";
+
+}
+
+function loadProfile(){
+
+document.getElementById("pname").value=profile.name||"";
+
+document.getElementById("email").value=profile.email||"";
+
+document.getElementById("phone").value=profile.phone||"";
+
+document.getElementById("education").value=profile.education||"";
+
+document.getElementById("pskills").value=profile.skills||"";
+
+document.getElementById("about").value=profile.about||"";
+
+}
+
+function updateDashboard(){
+
+document.getElementById("totalJobs").innerText=jobs.length;
+
+document.getElementById("totalApplications").innerText=
+applications.length;
+
+document.getElementById("totalSaved").innerText=
+saved.length;
+
+}
+
+function darkMode(){
+
+document.body.classList.toggle("dark");
+
+}
+
+saveData();
+
+updateDashboard();
+
+</script>
+
+</body>
+</html>
